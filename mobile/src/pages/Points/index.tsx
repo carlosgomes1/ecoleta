@@ -1,96 +1,100 @@
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 20 + Constants.statusBarHeight,
-  },
+import React, { useEffect, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import MapView, { Marker } from "react-native-maps";
+import { SvgUri } from "react-native-svg";
 
-  title: {
-    fontSize: 20,
-    fontFamily: 'Ubuntu_700Bold',
-    marginTop: 24,
-  },
+import styles from "./styles";
 
-  description: {
-    color: '#6C6C80',
-    fontSize: 16,
-    marginTop: 4,
-    fontFamily: 'Roboto_400Regular',
-  },
+import api from "../../services/api";
 
-  mapContainer: {
-    flex: 1,
-    width: '100%',
-    borderRadius: 10,
-    overflow: 'hidden',
-    marginTop: 16,
-  },
+interface Item {
+  id: number;
+  title: string;
+  image_url_mobile: string;
+}
 
-  map: {
-    width: '100%',
-    height: '100%',
-  },
+const Points = () => {
+  const [items, setItems] = useState<Item[]>([]);
 
-  mapMarker: {
-    width: 90,
-    height: 80, 
-  },
+  const navigation = useNavigation();
 
-  mapMarkerContainer: {
-    width: 90,
-    height: 70,
-    backgroundColor: '#34CB79',
-    flexDirection: 'column',
-    borderRadius: 8,
-    overflow: 'hidden',
-    alignItems: 'center'
-  },
+  function handleNavigateBack() {
+    navigation.goBack();
+  }
 
-  mapMarkerImage: {
-    width: 90,
-    height: 45,
-    resizeMode: 'cover',
-  },
+  function handleNavigateToDetail() {
+    navigation.navigate("Detail");
+  }
 
-  mapMarkerTitle: {
-    flex: 1,
-    fontFamily: 'Roboto_400Regular',
-    color: '#FFF',
-    fontSize: 13,
-    lineHeight: 23,
-  },
+  useEffect(() => {
+    api.get("/items").then((response) => {
+      setItems(response.data);
+      console.log(response.data);
+    });
+  }, []);
 
-  itemsContainer: {
-    flexDirection: 'row',
-    marginTop: 16,
-    marginBottom: 32,
-  },
+  return (
+    <>
+      <View style={styles.container}>
+        <TouchableOpacity onPress={handleNavigateBack}>
+          <Feather name="arrow-left" size={20} color="#34cb79" />
+        </TouchableOpacity>
 
-  item: {
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#eee',
-    height: 120,
-    width: 120,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 16,
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'space-between',
+        <Text style={styles.title}>Bem-vindo</Text>
+        <Text style={styles.description}>
+          Encontre no mapa um ponto de coleta.
+        </Text>
 
-    textAlign: 'center',
-  },
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: -23.6018908,
+              longitude: -46.4873902,
+              latitudeDelta: 0.014,
+              longitudeDelta: 0.014,
+            }}
+          >
+            <Marker
+              coordinate={{ latitude: -23.6018908, longitude: -46.4873902 }}
+              onPress={handleNavigateToDetail}
+            >
+              <View style={styles.mapMarkerContainer}>
+                <Image
+                  style={styles.mapMarkerImage}
+                  source={{
+                    uri:
+                      "https://images.unsplash.com/photo-1591100585960-7e8fa7f938e8?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
+                  }}
+                />
+                <Text style={styles.mapMarkerTitle}>Mercado</Text>
+              </View>
+            </Marker>
+          </MapView>
+        </View>
+      </View>
+      <View style={styles.itemsContainer}>
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 20 }}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {items.map((item) => (
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => {}}
+              key={item.id}
+            >
+              <SvgUri width={42} height={42} uri={item.image_url_mobile} />
+              <Text style={styles.itemTitle}>{item.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    </>
+  );
+};
 
-  selectedItem: {
-    borderColor: '#34CB79',
-    borderWidth: 2,
-  },
-
-  itemTitle: {
-    fontFamily: 'Roboto_400Regular',
-    textAlign: 'center',
-    fontSize: 13,
-  },
-});
+export default Points;
